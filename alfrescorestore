@@ -9,7 +9,7 @@
   AL_DATA="/opt/alfresco-community/alf_data"		  	# Alfresco data folder
   DB_HOME="/opt/alfresco-community/postgresql"	  		# PostgreSQL folder
   BACKUP_FOLDER="/opt/alfresco-community/backup"		# Alfresco backup folder
-  POSTGRESPASS="THUya01"                          		# Postgresql password defined in alfresco installation
+  POSTGRESPASS="password"                          		# Postgresql password defined in alfresco installation
   						  		# Create timestamp using format month, day, year, hour, minute   
   TIMESTAMP=$(date +%mM-%dD-%YA-%HH-%MM)	  		# for use in the log file
 
