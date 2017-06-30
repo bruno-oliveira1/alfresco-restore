@@ -5,13 +5,14 @@
 # Rewriteen by Bruno Oliveira
 
 # Configuration:
-  AL_FOLDER="/opt/alfresco-community"			        # Alfresco folder
+  AL_FOLDER="/opt/alfresco-community"			          # Alfresco folder
   AL_DATA="/opt/alfresco-community/alf_data"		  	# Alfresco data folder
-  DB_HOME="/opt/alfresco-community/postgresql"	  		# PostgreSQL folder
+  DB_HOME="/opt/alfresco-community/postgresql"	  	# PostgreSQL folder
   BACKUP_FOLDER="/opt/alfresco-community/backup"		# Alfresco backup folder
-  POSTGRESPASS="password"                          		# Postgresql password defined in alfresco installation
-  						  		# Create timestamp using format month, day, year, hour, minute   
-  TIMESTAMP=$(date +%mM-%dD-%YA-%HH-%MM)	  		# for use in the log file
+  POSTGRESPASS="password"                          	# Postgresql password defined in alfresco installation
+  						  		                                # Create timestamp using format month, day, year, hour, minute   
+  TIMESTAMP=$(date +%mM-%dD-%YA-%HH-%MM)	  		    # used in the log file and to name current data folder backup with you choose 
+                                                    # to backup current data
 
 
 # Function - Stop Alfresco
@@ -149,13 +150,14 @@ function backup_restore()
 }
 
  echo "You want to backup existing database ?" 
- echo "Answer with 0 if you want to backup 0=yes or answer 1 if you wont to backup no=1"
+ echo "Answer 0 for yes or 1 for no"
  read answer
 
   if [ "$answer" = "0" ]; then
 
       echo "You choose backup existing data"
-    
+      echo
+      
       # Create a filename for the database tar
       DB_DUMP_OLD=alfresco_db_${TIMESTAMP}.tar
 
@@ -186,21 +188,28 @@ function backup_restore()
     else
       
       echo "You choose dont backup existing data"
-
+      echo
   fi
+
+# Mortal Kombat easter egg array 
+  mk=( "Excelent !!!" "HAHAHAHAHAHAHAHA !!!" "Well Done" "You Will Never Win !!!!" "Superb !!!!" ) 
 
   echo "The last backup is"
   backup=$(ls $BACKUP_FOLDER | cut -d. -f1 | tail -n -1)
   echo $backup
   echo
   echo "Choose your destiny"
+  sleep 2
   echo "If you want to restore it ? Type it 0"
   sleep 1
   echo
   echo "Or show all avaliable backups ? Type it 1"
   read answer
-  echo "Excelent !!!"
-
+  echo
+  # Print a random value for mk array
+  echo ${mk["$[RANDOM % ${#mk[@]}]"]};
+  sleep 2
+  
   if [ "$answer" = "0" ]; then
       backup_restore >> /var/log/alfrescorestore.log
     else
