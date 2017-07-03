@@ -5,14 +5,14 @@
 # Rewriteen by Bruno Oliveira
 
 # Configuration:
-  AL_FOLDER="/opt/alfresco-community"			    # Alfresco folder
+  AL_FOLDER="/opt/alfresco-community"			# Alfresco folder
   AL_DATA="/opt/alfresco-community/alf_data"		# Alfresco data folder
-  DB_HOME="/opt/alfresco-community/postgresql"	  # PostgreSQL folder
+  DB_HOME="/opt/alfresco-community/postgresql"	        # PostgreSQL folder
   BACKUP_FOLDER="/opt/alfresco-community/backup"	# Alfresco backup folder
   POSTGRESPASS="password"                          	# Postgresql password defined in alfresco installation
-  						  		                    # Create timestamp using format month, day, year, hour, minute   
-  TIMESTAMP=$(date +%mM-%dD-%YA-%HH-%MM)	  		# used in the log file and to name current data folder backup with you choose 
-                                                    # to backup current data
+  					                # Create timestamp using format month, day, year, hour, minute   
+  TIMESTAMP=$(date +%mM-%dD-%YA-%HH-%MM)	  	# used in the log file and to name current data folder backup with you choose 
+                                                        # to backup current data
 
 
 # Function - Stop Alfresco
