@@ -149,6 +149,10 @@ function backup_restore()
   fi  
 }
 
+#----------------------------------------
+# 3 - Restore backups
+#----------------------------------------
+
  echo "You want to backup existing database ?" 
  echo "Answer 0 for yes or 1 for no"
  read answer
@@ -234,6 +238,10 @@ function backup_restore()
          echo
          backup_restore >> /var/log/alfrescorestore.log
   fi
+  
+#----------------------------------------
+# 4 - Starting alfresco and remove used files
+#----------------------------------------  
 
 # If all done start alfresco 
   al_start
