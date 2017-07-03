@@ -234,7 +234,7 @@ function backup_restore()
          echo
          echo -n "Enter the number of the backup you want to restore "
          read i
-         $backup=$(echo $i)
+         backup=$(echo ${bkplist[$i]})
          echo
          backup_restore >> /var/log/alfrescorestore.log
   fi
