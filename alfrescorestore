@@ -18,7 +18,7 @@
 # Function - Stop Alfresco
 function al_stop()
 {
-  $AL_FOLDER/alfresco.sh stop
+  $AL_FOLDER/alfresco.sh stop  > /dev/null 2>&1
 
   # If Alfresco does not stop we MUST exit script
   # Backing up files with Alfresco working may
@@ -32,47 +32,43 @@ function al_stop()
 # Function - Start Alfresco
 function al_start()
 {
-  $AL_FOLDER/alfresco.sh start
+  $AL_FOLDER/alfresco.sh start > /dev/null 2>&1
 }
 
 # Function - Start Postgress SQL Server
 function p_start()
 {
-  $DB_HOME/scripts/ctl.sh start
+  $DB_HOME/scripts/ctl.sh start > /dev/null 2>&1
 }
 
 # Function - Stop Postgress SQL Server
 function p_stop()
 {
-  $DB_HOME/scripts/ctl.sh stop
+  $DB_HOME/scripts/ctl.sh stop > /dev/null 2>&1
 }
-
-# Create a log with the date of the script
-  echo " " >> /var/log/alfrescorestore.log
-  echo $TIMESTAMP >> /var/log/alfrescorestore.log
 
 #----------------------------------------
 # 1 - Begin by stopping Alfresco
 #----------------------------------------
-  al_stop >> /var/log/alfrescorestore.log
+  al_stop 
 
 # Check if an error was returned
   if [ "$?" = "0" ]; then
-      echo "Alfresco stopped successful" >> /var/log/alfrescorestore.log
+      echo "Alfresco stopped successful"
     else
-      echo "Alfresco stopping failed" >> /var/log/alfrescorestore.log
+      echo "Alfresco stopping failed"
       exit
   fi
 
   # Start the postgress database which is stopped automatically
   # by the Alfresco stop script 
-  p_start >> /var/log/alfrescorestore.log
-
+  p_start
+  
 # Check if an error was returned
   if [ "$?" = "0" ]; then
-      echo "Postgress started successful" >> /var/log/alfrescorestore.log
+      echo "Postgress started successful"
     else
-      echo "Postgress starting failed" >> /var/log/alfrescorestore.log
+      echo "Postgress starting failed"
       exit
   fi
 
@@ -87,13 +83,14 @@ function backup_restore()
 {
 
 # Extract select backup to backup folder
-  tar xvf $BACKUP_FOLDER/${backup}.tgz -C /
-
+  echo "Extracting backup file"
+  pv -p $BACKUP_FOLDER/${backup}.tgz | tar xzf - -C /
+  
 # Check if an error was returned
   if [ "$?" = "0" ]; then
-      echo "Backup file extracted successful" >> /var/log/alfrescorestore.log
+      echo "Backup file extracted successful"
     else
-      echo "Backup file extracting failed" >> /var/log/alfrescorestore.log
+      echo "Backup file extracting failed"
       exit
   fi
 
@@ -108,9 +105,9 @@ function backup_restore()
 
 # Check if an error was returned
   if [ "$?" = "0" ]; then
-      echo "Alfresco database dropped successful" >> /var/log/alfrescorestore.log
+      echo "Alfresco database dropped successful"
     else
-      echo "Alfresco database dropped failed" >> /var/log/alfrescorestore.log
+      echo "Alfresco database dropped failed"
       exit
   fi
 
@@ -118,9 +115,9 @@ function backup_restore()
 
 # Check if an error was returned
   if [ "$?" = "0" ]; then
-      echo "Alfresco database created successful" >> /var/log/alfrescorestore.log
+      echo "Alfresco database created successful"
     else
-      echo "Alfresco database created failed" >> /var/log/alfrescorestore.log
+      echo "Alfresco database created failed"
       exit
   fi
 
@@ -129,23 +126,23 @@ function backup_restore()
 
   # Check if an error was returned
   if [ "$?" = "0" ]; then
-      echo "Alfresco database restore successful" >> /var/log/alfrescorestore.log
+      echo "Alfresco database restore successful"
     else
-      echo "Alfresco database restore failed" >> /var/log/alfrescorestore.log
+      echo "Alfresco database restore failed"
       exit
   fi
 
 # Stopped postgresql server
-  p_stop >> /var/log/alfrescorestore.log
-
+  p_stop
+  
 # Restore alf_data
   tar xvf $BACKUP_FOLDER/${backup}/$AL_DUMP -C / > /dev/null
   
   # Alfresco data restore check if an error was returned
   if [ "$?" = "0" ]; then
-      echo "Alfresco data restore worked!" >> /var/log/alfrescorestore.log
+      echo "Alfresco data restore worked!"
     else
-      echo "Alfresco data restore failed!" >> /var/log/alfrescorestore.log
+      echo "Alfresco data restore failed!"
   fi  
 }
 
@@ -174,9 +171,9 @@ function backup_restore()
       PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_dump -U alfresco alfresco -Ft > $BACKUP_FOLDER/${TIMESTAMP}.old/$DB_DUMP_OLD
        # Check if an error was returned
         if [ "$?" = "0" ]; then
-          echo "Database export worked!" >> /var/log/alfrescorestore.log
+          echo "Database export worked!"
         else
-          echo "Database export failed!" >> /var/log/alfrescorestore.log
+          echo "Database export failed!"
         fi
       chown postgres $BACKUP_FOLDER/${TIMESTAMP}.old/$DB_DUMP_OLD
 
@@ -184,9 +181,9 @@ function backup_restore()
 
       # Check if an error was returned
       if [ "$?" = "0" ]; then
-        echo "Old Alf_data folder backup successful!" >> /var/log/alfrescorestore.log
+        echo "Old Alf_data folder backup successful!"
       else
-        echo "Old Alf_data folder backup failed!" >> /var/log/alfrescorestore.log
+        echo "Old Alf_data folder backup failed!"
       fi
 
     else
@@ -216,7 +213,7 @@ function backup_restore()
   sleep 2
   
   if [ "$answer" = "0" ]; then
-      backup_restore >> /var/log/alfrescorestore.log
+      backup_restore > /dev/null 2>&1
     else
        #  Create a array with list of backups
        bkplist=( $(ls $BACKUP_FOLDER | cut -d. -f1) )
@@ -236,7 +233,7 @@ function backup_restore()
          read i
          backup=$(echo ${bkplist[$i]})
          echo
-         backup_restore >> /var/log/alfrescorestore.log
+         backup_restore > /dev/null 2>&1
   fi
   
 #----------------------------------------
