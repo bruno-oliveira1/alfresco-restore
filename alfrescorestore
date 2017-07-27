@@ -136,8 +136,9 @@ function backup_restore()
   p_stop
   
 # Restore alf_data
-  tar xvf $BACKUP_FOLDER/${backup}/$AL_DUMP -C / > /dev/null
-  
+  echo "Restoring alf_data folder"
+  pv -p $BACKUP_FOLDER/${backup}/$AL_DUMP | tar xzf - -C /
+   
   # Alfresco data restore check if an error was returned
   if [ "$?" = "0" ]; then
       echo "Alfresco data restore worked!"
