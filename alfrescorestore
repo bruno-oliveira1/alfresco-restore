@@ -193,9 +193,6 @@ function backup_restore()
       echo
   fi
 
-# Mortal Kombat easter egg array 
-  mk=( "Excelent !!!" "HAHAHAHAHAHAHAHA !!!" "Well Done" "You Will Never Win !!!!" "Superb !!!!" ) 
-
   echo "The last backup is"
   backup=$(ls $BACKUP_FOLDER | cut -d. -f1 | tail -n -1)
   echo $backup
@@ -208,6 +205,10 @@ function backup_restore()
   echo "Or show all avaliable backups ? Type it 1"
   read answer
   echo
+  
+  # Mortal Kombat easter egg array 
+  mk=( "Excelent !!!" "HAHAHAHAHAHAHAHA !!!" "Well Done" "You Will Never Win !!!!" "Superb !!!!" ) 
+  
   # Print a random value for mk array
   echo ${mk["$[RANDOM % ${#mk[@]}]"]};
 	echo 
