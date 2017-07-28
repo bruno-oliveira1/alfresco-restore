@@ -84,7 +84,7 @@ function backup_restore()
 
 # Extract select backup to backup folder
   echo "Extracting backup file"
-  pv -p $BACKUP_FOLDER/${backup}.tgz | tar xzf - -C /
+   tar xvf $BACKUP_FOLDER/${backup}.tgz -C /
   
 # Check if an error was returned
   if [ "$?" = "0" ]; then
@@ -137,7 +137,7 @@ function backup_restore()
   
 # Restore alf_data
   echo "Restoring alf_data folder"
-  pv -p $BACKUP_FOLDER/${backup}/$AL_DUMP | tar xzf - -C /
+  tar xvf $BACKUP_FOLDER/${backup}/$AL_DUMP -C /
    
   # Alfresco data restore check if an error was returned
   if [ "$?" = "0" ]; then
