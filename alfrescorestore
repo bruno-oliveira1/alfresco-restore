@@ -215,7 +215,7 @@ function backup_restore()
   sleep 2
   
   if [ "$answer" = "0" ]; then
-      backup_restore > /dev/null 2>&1
+      backup_restore
     else
        #  Create a array with list of backups
        bkplist=( $(ls $BACKUP_FOLDER | cut -d. -f1) )
@@ -235,7 +235,7 @@ function backup_restore()
          read i
          backup=$(echo ${bkplist[$i]})
          echo
-         backup_restore > /dev/null 2>&1
+         backup_restore
   fi
   
 #----------------------------------------
