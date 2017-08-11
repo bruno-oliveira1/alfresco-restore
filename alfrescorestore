@@ -19,14 +19,6 @@
 function al_stop()
 {
   $AL_FOLDER/alfresco.sh stop  > /dev/null 2>&1
-
-  # If Alfresco does not stop we MUST exit script
-  # Backing up files with Alfresco working may
-  # corrupt data indexes!!
-  if [ "$?" != "0" ]; then
-    echo "Alfresco Stop FAILED - STOP SCRIPT!"
-    exit 1;
-  fi
 }
 
 # Function - Start Alfresco
@@ -52,25 +44,9 @@ function p_stop()
 #----------------------------------------
   al_stop > /dev/null 2>&1
 
-# Check if an error was returned
-  if [ "$?" = "0" ]; then
-      echo "Alfresco stopped successful"
-    else
-      echo "Alfresco stopping failed"
-      exit
-  fi
-
   # Start the postgress database which is stopped automatically
   # by the Alfresco stop script 
   p_start > /dev/null 2>&1
-
-# Check if an error was returned
-  if [ "$?" = "0" ]; then
-      echo "Postgress started successful"
-    else
-      echo "Postgress starting failed"
-      exit
-  fi
 
   clear
 
@@ -99,29 +75,8 @@ function backup_restore()
 # Alfresco alf_data dump file 
   AL_DUMP=alfresco_data_${backup}.tgz
 
-# Drop and create alfresco database
-  su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/dropdb -U alfresco alfresco" -s /bin/sh postgres;
-
-# Check if an error was returned
-  if [ "$?" = "0" ]; then
-      echo "Alfresco database dropped successful"
-    else
-      echo "Alfresco database dropped failed"
-      exit
-  fi
-
-  su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/createdb -O alfresco alfresco" -s /bin/sh postgres;
-
-# Check if an error was returned
-  if [ "$?" = "0" ]; then
-      echo "Alfresco database created successful"
-    else
-      echo "Alfresco database created failed"
-      exit
-  fi
-
 # Restore database from tar file
-  su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_restore -d alfresco $BACKUP_FOLDER/${backup}/$DB_DUMP" -s /bin/sh postgres;
+  su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_restore -c -d alfresco $BACKUP_FOLDER/${backup}/$DB_DUMP" -s /bin/sh postgres;
 
   # Check if an error was returned
   if [ "$?" = "0" ]; then
@@ -165,18 +120,18 @@ function backup_restore()
       AL_DUMP_OLD=alfresco_data_${TIMESTAMP}.tgz
 
       # Create the folder to store the current database  
-      mkdir -p $BACKUP_FOLDER/${TIMESTAMP}.old/ 
+      mkdir -p $BACKUP_FOLDER/${TIMESTAMP}/
 
-      PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_dump -U alfresco alfresco -Ft > $BACKUP_FOLDER/${TIMESTAMP}.old/$DB_DUMP_OLD
+      PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_dump -C -U alfresco alfresco -Ft > $BACKUP_FOLDER/${TIMESTAMP}/$DB_DUMP_OLD
        # Check if an error was returned
         if [ "$?" = "0" ]; then
           echo "Database export worked!"
         else
           echo "Database export failed!"
         fi
-      chown postgres $BACKUP_FOLDER/${TIMESTAMP}.old/$DB_DUMP_OLD
+      chown postgres $BACKUP_FOLDER/${TIMESTAMP}/$DB_DUMP_OLD
 
-      tar zcf $BACKUP_FOLDER/${TIMESTAMP}.old/$AL_DUMP_OLD $AL_DATA > /dev/null 2>&1
+      tar zcf $BACKUP_FOLDER/${TIMESTAMP}/$AL_DUMP_OLD $AL_DATA > /dev/null 2>&1
 
       # Check if an error was returned
       if [ "$?" = "0" ]; then
