@@ -5,15 +5,24 @@
 # Rewriteen by Bruno Oliveira
 
 # Configuration:
-  AL_FOLDER="/opt/alfresco-community"			# Alfresco folder
-  AL_DATA="/opt/alfresco-community/alf_data"		# Alfresco data folder
-  DB_HOME="/opt/alfresco-community/postgresql"	        # PostgreSQL folder
-  BACKUP_FOLDER="/opt/alfresco-community/backup"	# Alfresco backup folder
-  POSTGRESPASS="Password"                          	# Postgresql password defined in alfresco installation
-  					                # Create timestamp using format month, day, year, hour, minute   
-  TIMESTAMP=$(date +%mM-%dD-%YA-%HH-%MM)	  	# used in the log file and to name current data folder backup with you choose 
-                                                        # to backup current data
+  AL_FOLDER="/opt/alfresco-community"			   # Alfresco folder
+  AL_DATA="/opt/alfresco-community/alf_data"		   # Alfresco data folder
+  DB_HOME="/opt/alfresco-community/postgresql"	           # PostgreSQL folder
+  BACKUP_FOLDER="/opt/alfresco-community/backup/duplicity" # Alfresco backup folder
+  POSTGRESPASS="THUya01"                          	   # Postgresql password defined in alfresco installation
+  					                   # Create timestamp using format month, day, year, hour, minute   
+  TIMESTAMP=$(date +%mM-%dD-%YA-%HH-%MM)	  	   # used in the log file and to name current data folder backup with you choose 
+                                                           # to backup current data
+  GPG_KEY='5719BBE859DE25E3C8BF8D1C219708FC6F6D924C'
+  #SOURCE='file:///root/duplicity'
+  SOURCE='file:///opt/alfresco-community/backup/duplicity' # The path to where the files that we want to backup are
 
+  #TARGET='/root/restore'
+  TARGET='/opt/alfresco-community/alf_data'                # The path to where we want to store the backup
+
+  DUPLICITY=`which duplicity`                                # The full path to the duplicity program
+
+  PHRASE='THUya01'
 
 # Function - Stop Alfresco
 function al_stop()
@@ -25,6 +34,12 @@ function al_stop()
 function al_start()
 {
   $AL_FOLDER/alfresco.sh start > /dev/null 2>&1
+}
+
+# Function - Restart Alfresco
+function al_restart()
+{
+  $AL_FOLDER/alfresco.sh restart > /dev/null 2>&1
 }
 
 # Function - Start Postgress SQL Server
@@ -58,29 +73,12 @@ function p_stop()
 function backup_restore()
 {
 
-# Extract select backup to backup folder
-  tar xvf $BACKUP_FOLDER/${backup}.tgz -C / > /dev/null 2>&1
-
-# Check if an error was returned
-  if [ "$?" = "0" ]; then
-      echo "Backup file extracted successful"
-    else
-      echo "Backup file extracting failed"
-      exit
-  fi
-
-# Alfresco postgres dump file
-  DB_DUMP=alfresco_db_${backup}.tar
-
-# Alfresco alf_data dump file 
-  AL_DUMP=alfresco_data_${backup}.tgz
-
 # Drop and create alfresco database
   su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/dropdb -U alfresco alfresco" -s /bin/sh postgres;
   su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/createdb -O alfresco alfresco" -s /bin/sh postgres;
 
 # Restore database from tar file
-  su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_restore -d alfresco $BACKUP_FOLDER/${backup}/$DB_DUMP" -s /bin/sh postgres;
+  su -c "PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_restore -d alfresco $BACKUP_FOLDER/$DB_DUMP" -s /bin/sh postgres;
 
   # Check if an error was returned
   if [ "$?" = "0" ]; then
@@ -118,15 +116,9 @@ function backup_restore()
       echo
       
       # Create a filename for the database tar
-      DB_DUMP=alfresco_db_${TIMESTAMP}.tar
+      DB_DUMP=alfresco_db_${TIMESTAMP}_backup_before_restore.tar
 
-      # Create a filename for the alf_data tgz
-      AL_DUMP=alfresco_data_${TIMESTAMP}.tgz
-
-      # Create the folder to store the current database  
-      mkdir -p $BACKUP_FOLDER/${TIMESTAMP}/
-
-      PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_dump -U alfresco alfresco -Ft > $BACKUP_FOLDER/${TIMESTAMP}/$DB_DUMP
+      PGPASSWORD=$POSTGRESPASS $DB_HOME/bin/pg_dump -U alfresco alfresco -Ft > $BACKUP_FOLDER/$DB_DUMP
 
        # Check if an error was returned
         if [ "$?" = "0" ]; then
@@ -134,10 +126,10 @@ function backup_restore()
         else
           echo "Database export failed!"
         fi
-      chown postgres $BACKUP_FOLDER/${TIMESTAMP}/$DB_DUMP
+      chown postgres $BACKUP_FOLDER/$DB_DUMP
 
-      tar zcf $BACKUP_FOLDER/${TIMESTAMP}/$AL_DUMP $AL_DATA > /dev/null 2>&1
-
+      PASSPHRASE=$PHRASE $DUPLICITY restore ${SOURCE} --encrypt-key="${GPG_KEY}" ${TARGET}
+      
       # Check if an error was returned
       if [ "$?" = "0" ]; then
         echo "Old Alf_data folder backup successful!"
@@ -201,6 +193,3 @@ function backup_restore()
 # If all done start alfresco 
   p_stop && al_stop
   al_start
-  
-# Delete extracted backup
-rm -rf $BACKUP_FOLDER/${backup}/
